@@ -177,28 +177,22 @@ public class PokePark {
             return;
         }
 
-        System.out.println("1. Force (STRENGTH)");
-        System.out.println("2. Défense (DEFENSE)");
-        System.out.println("3. Vitesse (SPEED)");
+        System.out.println("Stamina actuelle : " + pokemon.getStaminaBar() + "/100 (se recharge en passant un jour)");
+        System.out.println();
+        Training[] options = Training.values();
+        for (int i = 0; i < options.length; i++) {
+            Training t = options[i];
+            System.out.println((i + 1) + ". " + t.getLabel()
+                + " — " + t.getDescription()
+                + " [coût " + t.getStaminaCost() + " stamina]");
+        }
         int action = readInt("Entraînement : ");
-
-        Training training;
-        switch (action) {
-            case 1:
-                training = Training.STRENGTH;
-                break;
-            case 2:
-                training = Training.DEFENSE;
-                break;
-            case 3:
-                training = Training.SPEED;
-                break;
-            default:
-                System.out.println("Entraînement invalide.");
-                return;
+        if (action < 1 || action > options.length) {
+            System.out.println("Entraînement invalide.");
+            return;
         }
 
-        System.out.println(pokemon.train(training));
+        System.out.println(pokemon.train(options[action - 1]));
     }
 
     private void showInventory() {

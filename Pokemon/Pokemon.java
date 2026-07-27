@@ -136,83 +136,70 @@ public class Pokemon {
         if (getFoodStatus() == Status.STARVING) {
             return getName() + " est trop affamé pour s'entraîner. Nourris-le d'abord.";
         }
-        if (getStaminaStatus() != Status.INSHAPE) {
-            return getName() + " est trop fatigué pour s'entraîner. Fais-le reposer (passer un jour).";
+        if (getStaminaBar() < train.getStaminaCost()) {
+            return getName() + " n'a plus assez de stamina ("
+                + getStaminaBar() + "/" + MAXSTAMINA
+                + "). Il faut " + train.getStaminaCost()
+                + " pour un entraînement " + train.getLabel()
+                + ". Passe un jour pour le faire reposer.";
         }
 
-        int xpGained = 0;
-        String msg = "";
-        int trainingStrain = 0;
+        int statGained = getRandomNumber(2, 4);
+        String statName;
 
         switch (train) {
             case STRENGTH:
-                if (getStaminaBar() > 50) {
-                    xpGained = getRandomNumber(500, 800);
-                    int attackGained = getRandomNumber(1, 5);
-                    setAttack(getAttack() + attackGained);
-                    trainingStrain = getRandomNumber(8, 14);
-                    msg = getName() + " a gagné " + attackGained + " point(s) de force (" + train + ").";
-                    decreaseStaminaAndFoodBars(50, 20);
-                } else {
-                    msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
-                }
+                setAttack(getAttack() + statGained);
+                statName = "attaque";
                 break;
             case DEFENSE:
-                if (getStaminaBar() > 40) {
-                    xpGained = getRandomNumber(300, 600);
-                    int defenseGained = getRandomNumber(1, 5);
-                    setDefense(getDefense() + defenseGained);
-                    trainingStrain = getRandomNumber(6, 11);
-                    msg = getName() + " a gagné " + defenseGained + " point(s) de défense (" + train + ").";
-                    decreaseStaminaAndFoodBars(40, 20);
-                } else {
-                    msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
-                }
+                setDefense(getDefense() + statGained);
+                statName = "défense";
                 break;
             case SPEED:
-                if (getStaminaBar() > 30) {
-                    xpGained = getRandomNumber(200, 500);
-                    int speedGained = getRandomNumber(1, 5);
-                    setSpeed(getSpeed() + speedGained);
-                    trainingStrain = getRandomNumber(4, 9);
-                    msg = getName() + " a gagné " + speedGained + " point(s) de vitesse (" + train + ").";
-                    decreaseStaminaAndFoodBars(30, 20);
-                } else {
-                    msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
-                }
+                setSpeed(getSpeed() + statGained);
+                statName = "vitesse";
                 break;
             default:
-                msg = "Cet entraînement n'existe pas !";
-                break;
+                return "Cet entraînement n'existe pas !";
         }
 
+        decreaseStaminaAndFoodBars(train.getStaminaCost(), train.getFoodCost());
         updateStaminaStatus();
         updateFoodStatus();
 
-        if (trainingStrain > 0) {
-            // L'entraînement fatigue le corps ; la faim aggrave les blessures.
-            if (getFoodStatus() == Status.HUNGER) {
-                trainingStrain = (int) Math.round(trainingStrain * 1.5);
-            }
-            int lost = applyDamage(trainingStrain);
-            msg += " Effort : -" + lost + " PV (" + getPv() + "/" + getMaxPv() + ").";
-            if (getPv() <= 0) {
-                msg += " " + getName() + " est K.O. !";
-            }
+        int strain = getRandomNumber(train.getMinStrain(), train.getMaxStrain());
+        if (getFoodStatus() == Status.HUNGER) {
+            strain = (int) Math.round(strain * 1.5);
         }
+        int lost = applyDamage(strain);
 
-        if (xpGained > 0 && getPv() > 0) {
+        int xpGained = getRandomNumber(train.getMinXp(), train.getMaxXp());
+
+        String msg = getName() + " s'entraîne en " + train.getLabel()
+            + " : +" + statGained + " " + statName
+            + ", -" + train.getStaminaCost() + " stamina"
+            + " (" + getStaminaBar() + "/" + MAXSTAMINA + ")"
+            + ", -" + lost + " PV (" + getPv() + "/" + getMaxPv() + ").";
+
+        if (getPv() <= 0) {
+            msg += " " + getName() + " est K.O. !";
+        } else {
             gainXp(xpGained);
         }
 
         return msg;
     }
 
-    /** Appliqué chaque jour : faim ↓, stamina ↑ ; la malnutrition fait perdre des PV. */
+    /**
+     * Fin de journée :
+     * - la stamina se recharge (repos) → c'est son seul vrai rôle
+     * - la faim baisse
+     * - mal nourri → perte de PV
+     */
     public void passDay() {
         decreaseFoodBar(15);
-        int rested = Math.min(MAXSTAMINA, getStaminaBar() + 40);
-        setStaminaBar(rested);
+        setStaminaBar(MAXSTAMINA);
         updateFoodStatus();
         updateStaminaStatus();
 
@@ -278,7 +265,8 @@ public class Pokemon {
     }
 
     private void updateStaminaStatus() {
-        if (getStaminaBar() <= 49) {
+        // Affichage / revenus : fatigué si plus assez pour le plus léger entraînement.
+        if (getStaminaBar() < Training.SPEED.getStaminaCost()) {
             setStaminaStatus(Status.TIRED);
         } else {
             setStaminaStatus(Status.INSHAPE);
