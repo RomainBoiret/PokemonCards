@@ -3,6 +3,7 @@ package Pokemon;
 import java.util.ArrayList;
 import Player.*;
 import Shop.*;
+import i18n.I18n;
 
 public class Pokemon {
 
@@ -69,10 +70,10 @@ public class Pokemon {
 
     public String feed(Food food) {
         if (player == null) {
-            return "Ce Pokémon n'appartient à aucun joueur.";
+            return I18n.t("poke.no_owner");
         }
         if (getFoodBar() == MAXFOOD) {
-            return getName() + " n'a pas faim pour l'instant.";
+            return I18n.t("poke.not_hungry", getName());
         }
 
         ArrayList<Food> availableFoods = player.getFoodsFromInventory();
@@ -83,19 +84,19 @@ public class Pokemon {
                 int newFoodBar = getFoodBar() + f.getFoodPoint();
                 setFoodBar(Math.min(newFoodBar, MAXFOOD));
                 updateFoodStatus();
-                return getName() + " a mangé " + f.getName() + ", faim : " + getFoodBar() + " / " + MAXFOOD;
+                return I18n.t("poke.ate", getName(), f.getName(), getFoodBar(), MAXFOOD);
             }
         }
 
-        return "La nourriture " + food.getName() + " n'est pas dans l'inventaire.";
+        return I18n.t("poke.food_missing", food.getName());
     }
 
     public String heal(Heal heal) {
         if (player == null) {
-            return "Ce Pokémon n'appartient à aucun joueur.";
+            return I18n.t("poke.no_owner");
         }
         if (getPv() == getMaxPv()) {
-            return getName() + " n'a pas besoin d'être soigné.";
+            return I18n.t("poke.full_hp", getName());
         }
 
         ArrayList<Heal> availableHeals = player.getHealsFromInventory();
@@ -105,43 +106,46 @@ public class Pokemon {
                 player.getInventory().remove(h);
                 int newPv = getPv() + h.getHealPoint();
                 setPv(Math.min(newPv, getMaxPv()));
-                return getName() + " a été soigné avec " + h.getName() + ", pv : " + getPv() + " / " + getMaxPv();
+                return I18n.t("poke.healed", getName(), h.getName(), getPv(), getMaxPv());
             }
         }
 
-        return "Le heal " + heal.getName() + " n'est pas dans l'inventaire.";
+        return I18n.t("poke.heal_missing", heal.getName());
     }
 
     public String useXpBoost(XpBoost boost) {
         if (player == null) {
-            return "Ce Pokémon n'appartient à aucun joueur.";
+            return I18n.t("poke.no_owner");
         }
 
         ArrayList<XpBoost> boosts = player.getXpBoostsFromInventory();
         for (XpBoost b : boosts) {
             if (b == boost || b.getName().equals(boost.getName())) {
                 player.getInventory().remove(b);
-                gainXp(b.getXpPoint());
-                return getName() + " a utilisé " + b.getName() + " !";
+                String xpMsg = gainXp(b.getXpPoint());
+                return I18n.t("poke.used_boost", getName(), b.getName(), xpMsg);
             }
         }
 
-        return "Le boost " + boost.getName() + " n'est pas dans l'inventaire.";
+        return I18n.t("poke.boost_missing", boost.getName());
     }
 
     public String train(Training train) {
         if (getPv() <= 0) {
-            return getName() + " est K.O. ! Soigne-le avant de l'entraîner.";
+            return I18n.t("poke.ko_train", getName());
         }
         if (getFoodStatus() == Status.STARVING) {
-            return getName() + " est trop affamé pour s'entraîner. Nourris-le d'abord.";
+            return I18n.t("poke.starving_train", getName());
         }
         if (getStaminaBar() < train.getStaminaCost()) {
-            return getName() + " n'a plus assez de stamina ("
-                + getStaminaBar() + "/" + MAXSTAMINA
-                + "). Il faut " + train.getStaminaCost()
-                + " pour un entraînement " + train.getLabel()
-                + ". Passe un jour pour le faire reposer.";
+            return I18n.t(
+                "poke.no_stamina",
+                getName(),
+                getStaminaBar(),
+                MAXSTAMINA,
+                train.getStaminaCost(),
+                train.getLabel()
+            );
         }
 
         int statGained = getRandomNumber(2, 4);
@@ -150,18 +154,18 @@ public class Pokemon {
         switch (train) {
             case STRENGTH:
                 setAttack(getAttack() + statGained);
-                statName = "attaque";
+                statName = I18n.t("stat.attack");
                 break;
             case DEFENSE:
                 setDefense(getDefense() + statGained);
-                statName = "défense";
+                statName = I18n.t("stat.defense");
                 break;
             case SPEED:
                 setSpeed(getSpeed() + statGained);
-                statName = "vitesse";
+                statName = I18n.t("stat.speed");
                 break;
             default:
-                return "Cet entraînement n'existe pas !";
+                return I18n.t("poke.train_invalid");
         }
 
         decreaseStaminaAndFoodBars(train.getStaminaCost(), train.getFoodCost());
@@ -176,16 +180,27 @@ public class Pokemon {
 
         int xpGained = getRandomNumber(train.getMinXp(), train.getMaxXp());
 
-        String msg = getName() + " s'entraîne en " + train.getLabel()
-            + " : +" + statGained + " " + statName
-            + ", -" + train.getStaminaCost() + " stamina"
-            + " (" + getStaminaBar() + "/" + MAXSTAMINA + ")"
-            + ", -" + lost + " PV (" + getPv() + "/" + getMaxPv() + ").";
+        String msg = I18n.t(
+            "poke.train_result",
+            getName(),
+            train.getLabel(),
+            statGained,
+            statName,
+            train.getStaminaCost(),
+            getStaminaBar(),
+            MAXSTAMINA,
+            lost,
+            getPv(),
+            getMaxPv()
+        );
 
         if (getPv() <= 0) {
-            msg += " " + getName() + " est K.O. !";
+            msg += " " + I18n.t("poke.now_ko", getName());
         } else {
-            gainXp(xpGained);
+            String xpMsg = gainXp(xpGained);
+            if (!xpMsg.isEmpty()) {
+                msg += " " + xpMsg;
+            }
         }
 
         return msg;
@@ -286,37 +301,37 @@ public class Pokemon {
         }
     }
 
-    public void gainXp(int xpGained) {
+    public String gainXp(int xpGained) {
         if (xpGained <= 0) {
-            return;
+            return "";
         }
 
+        StringBuilder log = new StringBuilder();
         setXp(getXp() + xpGained);
-        System.out.println("XP gagné: +" + xpGained + " !");
-
         int xpNextLvl = getXpForNextLevel(getLevel());
-        System.out.println("XP actuel: " + getXp() + " / " + xpNextLvl + " pour le niveau suivant.");
+        log.append(I18n.t("poke.xp", xpGained, getXp(), xpNextLvl)).append(" ");
 
         while (getLevel() < MAXLEVEL && getXp() >= xpNextLvl && xpNextLvl > 0) {
             setXp(getXp() - xpNextLvl);
-            levelUp();
+            log.append(levelUp());
             xpNextLvl = getXpForNextLevel(getLevel());
         }
+        return log.toString().trim();
     }
 
-    private void levelUp() {
+    private String levelUp() {
         if (getLevel() < MAXLEVEL) {
             setLevel(getLevel() + 1);
-            System.out.println(getName() + " est monté au niveau " + getLevel() + " !");
+            String msg = I18n.t("poke.level_up", getName(), getLevel());
             if (EvolutionRules.canEvolveByLevel(this)) {
                 String previousName = getName();
                 if (applyEvolution(getEvolution())) {
-                    System.out.println(previousName + " a évolué en " + getName() + " !");
+                    msg += I18n.t("poke.evolved", previousName, getName());
                 }
             }
-        } else {
-            System.out.println(getName() + " est déjà au niveau maximum !");
+            return msg;
         }
+        return I18n.t("poke.max_level", getName());
     }
 
     private int getXpForNextLevel(int level) {
@@ -327,32 +342,51 @@ public class Pokemon {
     }
 
     /** Évolution automatique au niveau requis. */
-    public void evolve() {
+    public String evolve() {
         if (EvolutionRules.canEvolveByLevel(this)) {
             String previousName = getName();
             if (applyEvolution(getEvolution())) {
-                System.out.println(previousName + " a évolué en " + getName() + " !");
+                return I18n.t("poke.evolved", previousName, getName());
             }
         }
+        return I18n.t("poke.cannot_evolve", getName());
+    }
+
+    public String detailedStatus() {
+        String types = primaryType.name();
+        if (secondaryType != null) {
+            types += " / " + secondaryType.name();
+        }
+        return I18n.t("detail.header", name, lvl)
+            + "\n" + I18n.t("detail.type", types)
+            + "\n" + I18n.t("detail.hp", pv, maxPv)
+            + "\n" + I18n.t("detail.stats", attack, defense, speed)
+            + "\n" + I18n.t("detail.xp_stam", xp, staminaBar, statusLabel(staminaStatus))
+            + "\n" + I18n.t("detail.food", foodBar, statusLabel(foodStatus))
+            + "\n" + I18n.t("detail.evo", evolutionHint());
+    }
+
+    private String statusLabel(Status status) {
+        return I18n.t("status." + status.name());
     }
 
     public String evolveWithStone(Stone stone) {
         if (player == null) {
-            return "Ce Pokémon n'appartient à aucun joueur.";
+            return I18n.t("poke.no_owner");
         }
         if (stone == null) {
-            return "Aucune pierre sélectionnée.";
+            return I18n.t("poke.no_stone");
         }
 
         String target = EvolutionRules.resolveEvolutionTarget(this, stone.getStoneType());
         if (target == null) {
             if (getEvolution() == null) {
-                return getName() + " ne peut plus évoluer.";
+                return I18n.t("poke.cannot_evolve_more", getName());
             }
             if (getEvolutionLevel() > 0) {
-                return getName() + " évolue par niveau (niv. " + getEvolutionLevel() + "), pas avec cette pierre.";
+                return I18n.t("poke.stone_level_evo", getName(), getEvolutionLevel());
             }
-            return stone.getName() + " n'a aucun effet sur " + getName() + ".";
+            return I18n.t("poke.stone_no_effect", stone.getName(), getName());
         }
 
         ArrayList<Stone> stones = player.getStonesFromInventory();
@@ -365,16 +399,16 @@ public class Pokemon {
             }
         }
         if (!owned) {
-            return "La pierre " + stone.getName() + " n'est pas dans l'inventaire.";
+            return I18n.t("poke.stone_missing", stone.getName());
         }
 
         String previousName = getName();
         if (!applyEvolution(target)) {
             player.addItem(new Stone(stone.getName(), stone.getPrice(), stone.getDescription(), stone.getStoneType()));
-            return previousName + " n'a pas pu évoluer (données manquantes pour " + target + ").";
+            return I18n.t("poke.stone_fail", previousName, target);
         }
 
-        return previousName + " a évolué en " + getName() + " grâce à " + stone.getName() + " !";
+        return I18n.t("poke.stone_evolved", previousName, getName(), stone.getName());
     }
 
     private boolean applyEvolution(String evolutionName) {
@@ -399,15 +433,15 @@ public class Pokemon {
 
     public String evolutionHint() {
         if (getEvolution() == null) {
-            return "forme finale";
+            return I18n.t("poke.final_form");
         }
         if (getEvolution().equalsIgnoreCase("Multiple")) {
-            return "évolue avec Pierre Feu / Eau / Foudre";
+            return I18n.t("poke.eevee_stones");
         }
         if (getEvolutionLevel() > 0) {
-            return "évolue en " + getEvolution() + " au niv. " + getEvolutionLevel();
+            return I18n.t("poke.evo_level", getEvolution(), getEvolutionLevel());
         }
-        return "évolue en " + getEvolution() + " avec une pierre";
+        return I18n.t("poke.evo_stone", getEvolution());
     }
 
     public int getBaseStatTotal() {
@@ -421,8 +455,8 @@ public class Pokemon {
         }
         return name + " | Lv." + lvl + " | " + types
             + " | PV " + pv + "/" + maxPv
-            + " | Faim " + foodBar + " (" + foodStatus + ")"
-            + " | Stamina " + staminaBar + " (" + staminaStatus + ")"
+            + " | " + foodBar + " (" + statusLabel(foodStatus) + ")"
+            + " | " + staminaBar + " (" + statusLabel(staminaStatus) + ")"
             + " | " + evolutionHint();
     }
 

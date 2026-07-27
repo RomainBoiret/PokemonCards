@@ -18,6 +18,7 @@ mono_crash.*
 
 # Java build output
 out/
+dist/
 
 # Build results
 [Dd]ebug/

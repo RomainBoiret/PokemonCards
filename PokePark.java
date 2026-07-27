@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 import MisteryBox.Rarity;
@@ -12,6 +13,7 @@ import Shop.Item;
 import Shop.Shop;
 import Shop.Stone;
 import Shop.XpBoost;
+import i18n.I18n;
 
 /**
  * PokePark — gestionnaire de parc Pokémon (console).
@@ -29,34 +31,39 @@ public class PokePark {
     }
 
     private void run() {
+        System.out.println(I18n.t("app.ask_language"));
+        System.out.println("1. " + I18n.t("app.lang_fr"));
+        System.out.println("2. " + I18n.t("app.lang_en"));
+        int lang = readInt("> ");
+        I18n.setLocale(lang == 2 ? Locale.US : Locale.FRENCH);
+
         System.out.println("=================================");
         System.out.println("          P O K E P A R K        ");
-        System.out.println("   Gère ton parc, fais évoluer   ");
-        System.out.println("      ta collection Pokémon      ");
+        System.out.println("   " + I18n.t("console.banner_1"));
+        System.out.println("      " + I18n.t("console.banner_2"));
         System.out.println("=================================");
 
         PokemonFactory.chargerPokemons(POKEMON_JSON);
         if (!PokemonFactory.estCharge()) {
-            System.out.println("Impossible de charger " + POKEMON_JSON);
+            System.out.println(I18n.t("app.load_error", POKEMON_JSON));
             return;
         }
 
-        System.out.print("\nNom du dresseur-gestionnaire : ");
+        System.out.print("\n" + I18n.t("console.ask_name"));
         String name = scanner.nextLine().trim();
         if (name.isEmpty()) {
             name = "Manager";
         }
         player = new Player(name);
 
-        System.out.println("\nBienvenue " + player.getName() + " ! Tu démarres avec "
-            + player.getPokeDollars() + " ₽.");
-        System.out.println("Ouvre des Mystery Boxes (formes de base), fais-les évoluer, et gagne des revenus chaque jour.\n");
+        System.out.println("\n" + I18n.t("console.welcome", player.getName(), player.getPokeDollars()));
+        System.out.println(I18n.t("console.intro") + "\n");
 
         boolean running = true;
         while (running) {
             printHeader();
             printMainMenu();
-            int choice = readInt("Choix : ");
+            int choice = readInt("> ");
             System.out.println();
 
             switch (choice) {
@@ -86,10 +93,10 @@ public class PokePark {
                     break;
                 case 0:
                     running = false;
-                    System.out.println("À bientôt dans PokePark, " + player.getName() + " !");
+                    System.out.println(I18n.t("console.bye", player.getName()));
                     break;
                 default:
-                    System.out.println("Choix invalide.");
+                    System.out.println(I18n.t("console.invalid"));
             }
             System.out.println();
         }
@@ -97,24 +104,29 @@ public class PokePark {
 
     private void printHeader() {
         System.out.println("---------------------------------");
-        System.out.println(player.getName()
-            + " | Jour " + player.getDay()
-            + " | " + player.getPokeDollars() + " ₽"
-            + " | Parc " + player.parkSize() + "/" + player.getParkCapacity()
-            + " | Inv. " + player.inventorySize() + "/" + player.getInventoryCapacity());
+        System.out.println(I18n.t(
+            "header.status",
+            player.getName(),
+            player.getDay(),
+            player.getPokeDollars(),
+            player.parkSize(),
+            player.getParkCapacity(),
+            player.inventorySize(),
+            player.getInventoryCapacity()
+        ));
         System.out.println("---------------------------------");
     }
 
     private void printMainMenu() {
-        System.out.println("1. Voir le parc");
-        System.out.println("2. Soigner / Nourrir / XP Boost");
-        System.out.println("3. Entraîner un Pokémon");
-        System.out.println("4. Inventaire");
-        System.out.println("5. Boutique");
-        System.out.println("6. Mystery Box");
-        System.out.println("7. Passer un jour (revenus + repos)");
-        System.out.println("8. Agrandir parc / inventaire");
-        System.out.println("0. Quitter");
+        System.out.println(I18n.t("console.menu_1"));
+        System.out.println(I18n.t("console.menu_2"));
+        System.out.println(I18n.t("console.menu_3"));
+        System.out.println(I18n.t("console.menu_4"));
+        System.out.println(I18n.t("console.menu_5"));
+        System.out.println(I18n.t("console.menu_6"));
+        System.out.println(I18n.t("console.menu_7"));
+        System.out.println(I18n.t("console.menu_8"));
+        System.out.println(I18n.t("console.menu_0"));
     }
 
     private void showPark() {
@@ -358,7 +370,7 @@ public class PokePark {
             try {
                 return Integer.parseInt(line);
             } catch (NumberFormatException e) {
-                System.out.println("Entre un nombre.");
+                System.out.println(I18n.t("console.enter_number"));
             }
         }
     }

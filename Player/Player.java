@@ -107,26 +107,25 @@ public class Player {
         setPokeDollars(getPokeDollars() + income);
         day++;
 
-        return "Jour " + (day - 1) + " terminé. Revenus du parc : +" + income + " ₽. Jour actuel : " + day + ".";
+        return i18n.I18n.t("player.day_done", day - 1, income, day);
     }
 
     public String buyMysteryBox(Rarity rarity) {
         MisteryBox box = new MisteryBox(rarity);
 
         if (getPokeDollars() < box.getPrice()) {
-            return "Pas assez de Pokédollars. Il faut " + box.getPrice() + " ₽.";
+            return i18n.I18n.t("player.box_no_money", box.getPrice());
         }
 
         if (parkSize() >= parkCapacity) {
-            return "Parc plein ! Agrandis-le avant d'ouvrir une box.";
+            return i18n.I18n.t("player.park_full");
         }
 
         setPokeDollars(getPokeDollars() - box.getPrice());
         Pokemon pokemon = box.open();
         addPokemon(pokemon);
 
-        return "Mystery Box " + box.getRarity() + " ouverte (-" + box.getPrice() + " ₽) ! "
-            + pokemon.getName() + " rejoint le parc.";
+        return i18n.I18n.t("player.box_opened", box.getRarity(), box.getPrice(), pokemon.getName());
     }
 
     public String getName() {

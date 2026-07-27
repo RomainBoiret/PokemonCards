@@ -1,44 +1,17 @@
 package Pokemon;
 
+import i18n.I18n;
+
 /**
- * Types d'entraînement : chacun cible une stat, avec un coût en stamina/faim clair.
- *
- * Stamina = efforts restants dans la journée (recharge en passant un jour).
+ * Training types: each targets one stat with a clear stamina/hunger cost.
+ * Stamina = remaining efforts for the day (refilled by passing a day).
  */
 public enum Training {
-    STRENGTH(
-        "Force",
-        "Augmente l'attaque. Intense : coûte beaucoup de stamina.",
-        40,
-        15,
-        8,
-        12,
-        500,
-        700
-    ),
-    DEFENSE(
-        "Défense",
-        "Augmente la défense. Effort modéré.",
-        30,
-        12,
-        5,
-        9,
-        350,
-        550
-    ),
-    SPEED(
-        "Vitesse",
-        "Augmente la vitesse. Léger : peu de stamina, un peu moins d'XP.",
-        20,
-        10,
-        3,
-        6,
-        250,
-        400
-    );
+    STRENGTH("train.strength", 40, 15, 8, 12, 500, 700),
+    DEFENSE("train.defense", 30, 12, 5, 9, 350, 550),
+    SPEED("train.speed", 20, 10, 3, 6, 250, 400);
 
-    private final String label;
-    private final String description;
+    private final String keyPrefix;
     private final int staminaCost;
     private final int foodCost;
     private final int minStrain;
@@ -46,18 +19,8 @@ public enum Training {
     private final int minXp;
     private final int maxXp;
 
-    Training(
-        String label,
-        String description,
-        int staminaCost,
-        int foodCost,
-        int minStrain,
-        int maxStrain,
-        int minXp,
-        int maxXp
-    ) {
-        this.label = label;
-        this.description = description;
+    Training(String keyPrefix, int staminaCost, int foodCost, int minStrain, int maxStrain, int minXp, int maxXp) {
+        this.keyPrefix = keyPrefix;
         this.staminaCost = staminaCost;
         this.foodCost = foodCost;
         this.minStrain = minStrain;
@@ -67,11 +30,11 @@ public enum Training {
     }
 
     public String getLabel() {
-        return label;
+        return I18n.t(keyPrefix + ".label");
     }
 
     public String getDescription() {
-        return description;
+        return I18n.t(keyPrefix + ".desc");
     }
 
     public int getStaminaCost() {
