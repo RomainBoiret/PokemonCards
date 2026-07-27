@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import Player.*;
 import Shop.*;
 import i18n.I18n;
+import i18n.PokemonNames;
 
 public class Pokemon {
 
@@ -73,7 +74,7 @@ public class Pokemon {
             return I18n.t("poke.no_owner");
         }
         if (getFoodBar() == MAXFOOD) {
-            return I18n.t("poke.not_hungry", getName());
+            return I18n.t("poke.not_hungry", getDisplayName());
         }
 
         ArrayList<Food> availableFoods = player.getFoodsFromInventory();
@@ -84,7 +85,7 @@ public class Pokemon {
                 int newFoodBar = getFoodBar() + f.getFoodPoint();
                 setFoodBar(Math.min(newFoodBar, MAXFOOD));
                 updateFoodStatus();
-                return I18n.t("poke.ate", getName(), f.getName(), getFoodBar(), MAXFOOD);
+                return I18n.t("poke.ate", getDisplayName(), f.getName(), getFoodBar(), MAXFOOD);
             }
         }
 
@@ -96,7 +97,7 @@ public class Pokemon {
             return I18n.t("poke.no_owner");
         }
         if (getPv() == getMaxPv()) {
-            return I18n.t("poke.full_hp", getName());
+            return I18n.t("poke.full_hp", getDisplayName());
         }
 
         ArrayList<Heal> availableHeals = player.getHealsFromInventory();
@@ -106,7 +107,7 @@ public class Pokemon {
                 player.getInventory().remove(h);
                 int newPv = getPv() + h.getHealPoint();
                 setPv(Math.min(newPv, getMaxPv()));
-                return I18n.t("poke.healed", getName(), h.getName(), getPv(), getMaxPv());
+                return I18n.t("poke.healed", getDisplayName(), h.getName(), getPv(), getMaxPv());
             }
         }
 
@@ -123,7 +124,7 @@ public class Pokemon {
             if (b == boost || b.getName().equals(boost.getName())) {
                 player.getInventory().remove(b);
                 String xpMsg = gainXp(b.getXpPoint());
-                return I18n.t("poke.used_boost", getName(), b.getName(), xpMsg);
+                return I18n.t("poke.used_boost", getDisplayName(), b.getName(), xpMsg);
             }
         }
 
@@ -132,15 +133,15 @@ public class Pokemon {
 
     public String train(Training train) {
         if (getPv() <= 0) {
-            return I18n.t("poke.ko_train", getName());
+            return I18n.t("poke.ko_train", getDisplayName());
         }
         if (getFoodStatus() == Status.STARVING) {
-            return I18n.t("poke.starving_train", getName());
+            return I18n.t("poke.starving_train", getDisplayName());
         }
         if (getStaminaBar() < train.getStaminaCost()) {
             return I18n.t(
                 "poke.no_stamina",
-                getName(),
+                getDisplayName(),
                 getStaminaBar(),
                 MAXSTAMINA,
                 train.getStaminaCost(),
@@ -182,7 +183,7 @@ public class Pokemon {
 
         String msg = I18n.t(
             "poke.train_result",
-            getName(),
+            getDisplayName(),
             train.getLabel(),
             statGained,
             statName,
@@ -195,7 +196,7 @@ public class Pokemon {
         );
 
         if (getPv() <= 0) {
-            msg += " " + I18n.t("poke.now_ko", getName());
+            msg += " " + I18n.t("poke.now_ko", getDisplayName());
         } else {
             String xpMsg = gainXp(xpGained);
             if (!xpMsg.isEmpty()) {
@@ -322,16 +323,16 @@ public class Pokemon {
     private String levelUp() {
         if (getLevel() < MAXLEVEL) {
             setLevel(getLevel() + 1);
-            String msg = I18n.t("poke.level_up", getName(), getLevel());
+            String msg = I18n.t("poke.level_up", getDisplayName(), getLevel());
             if (EvolutionRules.canEvolveByLevel(this)) {
-                String previousName = getName();
+                String previousName = getDisplayName();
                 if (applyEvolution(getEvolution())) {
-                    msg += I18n.t("poke.evolved", previousName, getName());
+                    msg += I18n.t("poke.evolved", previousName, getDisplayName());
                 }
             }
             return msg;
         }
-        return I18n.t("poke.max_level", getName());
+        return I18n.t("poke.max_level", getDisplayName());
     }
 
     private int getXpForNextLevel(int level) {
@@ -344,12 +345,12 @@ public class Pokemon {
     /** Évolution automatique au niveau requis. */
     public String evolve() {
         if (EvolutionRules.canEvolveByLevel(this)) {
-            String previousName = getName();
+            String previousName = getDisplayName();
             if (applyEvolution(getEvolution())) {
-                return I18n.t("poke.evolved", previousName, getName());
+                return I18n.t("poke.evolved", previousName, getDisplayName());
             }
         }
-        return I18n.t("poke.cannot_evolve", getName());
+        return I18n.t("poke.cannot_evolve", getDisplayName());
     }
 
     public String detailedStatus() {
@@ -357,7 +358,7 @@ public class Pokemon {
         if (secondaryType != null) {
             types += " / " + secondaryType.name();
         }
-        return I18n.t("detail.header", name, lvl)
+        return I18n.t("detail.header", getDisplayName(), lvl)
             + "\n" + I18n.t("detail.type", types)
             + "\n" + I18n.t("detail.hp", pv, maxPv)
             + "\n" + I18n.t("detail.stats", attack, defense, speed)
@@ -381,12 +382,12 @@ public class Pokemon {
         String target = EvolutionRules.resolveEvolutionTarget(this, stone.getStoneType());
         if (target == null) {
             if (getEvolution() == null) {
-                return I18n.t("poke.cannot_evolve_more", getName());
+                return I18n.t("poke.cannot_evolve_more", getDisplayName());
             }
             if (getEvolutionLevel() > 0) {
-                return I18n.t("poke.stone_level_evo", getName(), getEvolutionLevel());
+                return I18n.t("poke.stone_level_evo", getDisplayName(), getEvolutionLevel());
             }
-            return I18n.t("poke.stone_no_effect", stone.getName(), getName());
+            return I18n.t("poke.stone_no_effect", stone.getName(), getDisplayName());
         }
 
         ArrayList<Stone> stones = player.getStonesFromInventory();
@@ -402,13 +403,13 @@ public class Pokemon {
             return I18n.t("poke.stone_missing", stone.getName());
         }
 
-        String previousName = getName();
+        String previousName = getDisplayName();
         if (!applyEvolution(target)) {
             player.addItem(new Stone(stone.getName(), stone.getPrice(), stone.getDescription(), stone.getStoneType()));
-            return I18n.t("poke.stone_fail", previousName, target);
+            return I18n.t("poke.stone_fail", previousName, PokemonNames.display(target));
         }
 
-        return I18n.t("poke.stone_evolved", previousName, getName(), stone.getName());
+        return I18n.t("poke.stone_evolved", previousName, getDisplayName(), stone.getName());
     }
 
     private boolean applyEvolution(String evolutionName) {
@@ -439,9 +440,9 @@ public class Pokemon {
             return I18n.t("poke.eevee_stones");
         }
         if (getEvolutionLevel() > 0) {
-            return I18n.t("poke.evo_level", getEvolution(), getEvolutionLevel());
+            return I18n.t("poke.evo_level", PokemonNames.display(getEvolution()), getEvolutionLevel());
         }
-        return I18n.t("poke.evo_stone", getEvolution());
+        return I18n.t("poke.evo_stone", PokemonNames.display(getEvolution()));
     }
 
     public int getBaseStatTotal() {
@@ -453,7 +454,7 @@ public class Pokemon {
         if (secondaryType != null) {
             types += "/" + secondaryType.name();
         }
-        return name + " | Lv." + lvl + " | " + types
+        return getDisplayName() + " | Lv." + lvl + " | " + types
             + " | PV " + pv + "/" + maxPv
             + " | " + foodBar + " (" + statusLabel(foodStatus) + ")"
             + " | " + staminaBar + " (" + statusLabel(staminaStatus) + ")"
@@ -466,6 +467,11 @@ public class Pokemon {
 
     public String getName() {
         return this.name;
+    }
+
+    /** Nom affiché (français ou anglais selon la langue). */
+    public String getDisplayName() {
+        return PokemonNames.display(this.name);
     }
 
     public Type getPrimaryType() {

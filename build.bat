@@ -43,5 +43,10 @@ if errorlevel 1 exit /b 1
 
 echo.
 echo OK: %JAR%
-echo Lancer: java -jar %JAR%
+echo.
+echo Important: ton PATH peut encore pointer vers Java 8.
+echo Lance plutot:
+echo   .\run.bat
+echo ou:
+echo   "%JDK%\java.exe" -jar %JAR%
 endlocal

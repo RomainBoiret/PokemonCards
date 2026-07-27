@@ -125,7 +125,7 @@ public class Player {
         Pokemon pokemon = box.open();
         addPokemon(pokemon);
 
-        return i18n.I18n.t("player.box_opened", box.getRarity(), box.getPrice(), pokemon.getName());
+        return i18n.I18n.t("player.box_opened", box.getRarity(), box.getPrice(), pokemon.getDisplayName());
     }
 
     public String getName() {

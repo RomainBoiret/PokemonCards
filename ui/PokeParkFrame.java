@@ -345,7 +345,7 @@ public class PokeParkFrame extends JFrame {
         for (Pokemon p : player.getPark()) {
             parkModel.addElement(I18n.t(
                 "park.list_line",
-                p.getName(),
+                p.getDisplayName(),
                 p.getLevel(),
                 p.getPv(),
                 p.getMaxPv(),

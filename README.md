@@ -20,20 +20,30 @@ Disponible en **français** et **anglais (US)**.
 ### Option A — JAR (recommandé)
 
 ```bat
-build.bat
-java -jar dist\PokePark.jar
+.\build.bat
+.\run.bat
 ```
 
-Sous Linux / macOS, après compilation équivalente :
+`run.bat` utilise le JDK 17 même si ton `java` par défaut est encore en Java 8.
+
+Équivalent manuel :
+
+```bat
+"C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot\bin\java.exe" -jar dist\PokePark.jar
+```
+
+Sous Linux / macOS (avec Java 17+ dans le PATH) :
 
 ```bash
 java -jar dist/PokePark.jar
 ```
 
+> **Note :** le projet nécessite **Java 17+**. Si tu vois `UnsupportedClassVersionError`, ton `java -version` est trop vieux — utilise `.\run.bat` ou un JDK 17.
+
 ### Option B — Console
 
 ```bat
-build.bat
+.\build.bat
 java -cp "out;lib\json-simple-1.1.1.jar" PokePark
 ```
 
@@ -159,6 +169,14 @@ Articuno, Zapdos, Moltres, Mewtwo
   - BST &lt; 280 → Common  
   - BST &lt; 360 → Rare  
   - sinon → Epic  
+
+---
+
+## Noms des Pokémon
+
+En **français**, les noms s’affichent en version française officielle (ex. Salamèche, Carapuce, Évoli).  
+En **anglais (US)**, les noms restent en anglais (Charmander, Squirtle, Eevee).  
+En interne, le jeu utilise toujours les noms anglais (JSON / évolutions).
 
 ---
 
