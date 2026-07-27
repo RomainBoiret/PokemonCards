@@ -1,44 +1,44 @@
 # PokePark
 
-**PokePark** est un jeu de gestion de parc Pokémon en Java (interface graphique Swing).
+**PokePark** is a Pokémon park management game built in Java with a Swing graphical interface.
 
-Tu n’es pas un dresseur qui combat : tu gères un **parc**. Tu ouvres des Mystery Boxes, tu accueilles des Pokémon de **1ʳᵉ génération**, tu les nourris, les soignes, les entraînes, les fais évoluer, et tu gagnes des Pokédollars chaque jour selon l’état de ton parc.
+You're not a Pokémon Trainer battling opponents—you manage your own **Pokémon Park**. Open Mystery Boxes, collect **Generation I Pokémon**, feed them, heal them, train them, evolve them, and earn Pokédollars every day based on the condition of your park.
 
-Disponible en **français** et **anglais (US)**.
+Available in **French** and **English (US)**.
 
 ---
 
-## Prérequis
+## Requirements
 
-- **JDK 17+** ([Microsoft OpenJDK](https://learn.microsoft.com/java/openjdk/download) ou équivalent)
+- **JDK 17+** ([Microsoft OpenJDK](https://learn.microsoft.com/java/openjdk/download) or equivalent)
 - Windows / macOS / Linux
 
 ---
 
-## Lancer le jeu
+## Running the Game
 
-### Option A — JAR (recommandé)
+### Option A — JAR (Recommended)
 
 ```bat
 .\build.bat
 .\run.bat
 ```
 
-`run.bat` utilise le JDK 17 même si ton `java` par défaut est encore en Java 8.
+`run.bat` uses JDK 17 even if your default `java` installation is still Java 8.
 
-Équivalent manuel :
+Manual equivalent:
 
 ```bat
 "C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot\bin\java.exe" -jar dist\PokePark.jar
 ```
 
-Sous Linux / macOS (avec Java 17+ dans le PATH) :
+On Linux / macOS (with Java 17+ in your PATH):
 
 ```bash
 java -jar dist/PokePark.jar
 ```
 
-> **Note :** le projet nécessite **Java 17+**. Si tu vois `UnsupportedClassVersionError`, ton `java -version` est trop vieux — utilise `.\run.bat` ou un JDK 17.
+> **Note:** This project requires **Java 17+**. If you see an `UnsupportedClassVersionError`, your `java -version` is too old. Use `.\run.bat` or install a JDK 17+.
 
 ### Option B — Console
 
@@ -47,182 +47,196 @@ java -jar dist/PokePark.jar
 java -cp "out;lib\json-simple-1.1.1.jar" PokePark
 ```
 
-(Sous Unix, remplace `;` par `:` dans le classpath.)
+(On Unix systems, replace `;` with `:` in the classpath.)
 
-Au démarrage, choisis la langue (**Français** / **English (US)**), puis entre ton nom de gestionnaire.
+When the game starts, choose your language (**French** / **English (US)**), then enter your park manager's name.
 
-Tu commences avec **1000 ₽**, un parc de **100** places et un inventaire de **100** slots.
-
----
-
-## Objectif
-
-Développer ton parc : collectionner, faire évoluer, maintenir tes Pokémon en bonne forme, et faire croître tes revenus journaliers.
+You begin with **1000 ₽**, a park capacity of **100 Pokémon**, and an inventory with **100 slots**.
 
 ---
 
-## Règles du jeu
+## Goal
 
-### Les 3 jauges d’un Pokémon
+Grow your park by collecting Pokémon, evolving them, keeping them healthy, and increasing your daily income.
 
-| Jauge | Rôle | Comment ça bouge |
-|--------|------|------------------|
-| **Stamina** | Efforts restants **aujourd’hui** | Baisse à chaque entraînement. Se **recharge à 100 %** en passant un jour. |
-| **Faim** | Énergie / carburant | Baisse à l’entraînement et chaque jour. Remonte en **nourrissant**. |
-| **PV** | Santé | Baisse à l’effort (entraînement) et si le Pokémon est mal nourri la nuit. Remonte avec des **potions**. |
+---
 
-Règles importantes :
+## Game Rules
 
-- **Affamé (STARVING)** → impossible d’entraîner (il faut nourrir).
-- **K.O. (0 PV)** → impossible d’entraîner (il faut soigner).
-- **Pas assez de stamina** → impossible d’entraîner ce type d’effort (il faut passer un jour).
-- Un Pokémon mal en point ou K.O. **rapporte moins** (ou rien) le jour suivant.
+### A Pokémon's Three Stats
 
-### Entraînements
+| Stat | Purpose | How it Changes |
+|------|---------|----------------|
+| **Stamina** | Remaining energy **for today** | Decreases after each training session. Fully **restores to 100%** when a day passes. |
+| **Hunger** | Energy/Food level | Decreases with training and each new day. Restored by **feeding** your Pokémon. |
+| **HP** | Health | Decreases after training and if the Pokémon is underfed overnight. Restored with **Potions**. |
 
-Chaque type cible **une seule stat** :
+Important rules:
 
-| Entraînement | Effet | Coût stamina | Style |
-|--------------|--------|--------------|--------|
-| **Force** | + Attaque | 40 | Intense, plus d’XP, plus dur pour les PV |
-| **Défense** | + Défense | 30 | Effort modéré |
-| **Vitesse** | + Vitesse | 20 | Léger, un peu moins d’XP |
+- **Starving** Pokémon cannot train until they are fed.
+- **Fainted (0 HP)** Pokémon cannot train until they are healed.
+- **Not enough Stamina** means that training session cannot be performed until the next day.
+- Injured or fainted Pokémon generate **reduced income—or none at all—the following day.**
 
-L’entraînement donne aussi de l’**XP** → montée de niveau → évolutions par niveau possibles.
+### Training
 
-### Passer un jour
+Each training session improves **only one stat**.
 
-Quand tu passes un jour :
+| Training | Effect | Stamina Cost | Style |
+|----------|--------|--------------|-------|
+| **Strength** | + Attack | 40 | Intense, grants more XP, harder on HP |
+| **Defense** | + Defense | 30 | Balanced effort |
+| **Speed** | + Speed | 20 | Light workout, slightly less XP |
 
-1. Tu gagnes des **revenus** selon le parc (niveau, faim, stamina, PV).
-2. Chaque Pokémon **repose** (stamina pleine).
-3. La **faim baisse**.
-4. S’il a encore faim / est affamé → il **perd des PV**.
+Training also grants **XP**, allowing Pokémon to level up and unlock level-based evolutions.
 
-Boucle typique : ouvrir une box → nourrir / soigner → entraîner → passer un jour → recommencer.
+### Passing a Day
 
-### Évolution
+When you advance to the next day:
 
-Les boxes ne donnent que des **formes de base**. Ensuite :
+1. You earn **daily income** based on your park's condition (levels, hunger, stamina, HP).
+2. Every Pokémon **rests** and fully restores its stamina.
+3. Hunger decreases.
+4. Hungry or starving Pokémon **lose HP**.
 
-1. **Par niveau** — automatique à l’entraînement / XP  
-   Ex. : Charmander → Charmeleon (niv. 16) → Charizard (niv. 36)
-2. **Par pierre** (boutique) — pour les évolutions sans niveau  
-   Ex. : Pikachu + Pierre Foudre → Raichu  
-   Évoli : Feu → Flareon, Eau → Vaporeon, Foudre → Jolteon  
-   Aussi : Pierre Plante, Pierre Lune, Cable Link (évolutions « échange »)
+Typical gameplay loop:
 
-### Boutique
+> Open a Mystery Box → Feed / Heal → Train → Pass a Day → Repeat
 
-| Catégorie | Exemples | Utilité |
-|-----------|----------|---------|
-| Nourriture | Baie Oran, Repas, Festin | Remplir la faim |
-| Soins | Potion, Super / Hyper Potion | Restaurer les PV |
-| XP | Bonbon XP | Donner de l’expérience |
-| Pierres | Feu, Eau, Foudre, Plante, Lune, Cable Link | Faire évoluer |
+### Evolution
 
-### Agrandissements
+Mystery Boxes only contain **base-form Pokémon**.
 
-- **Parc** : +50 places pour **1000 ₽**
-- **Inventaire** : +50 slots pour **500 ₽**
+Pokémon can evolve in two ways:
+
+1. **By Level** (automatic through training and XP)
+   - Example: Charmander → Charmeleon (Lv. 16) → Charizard (Lv. 36)
+
+2. **By Evolution Stone** (purchased from the Shop)
+   - Pikachu + Thunder Stone → Raichu
+   - Eevee:
+     - Fire Stone → Flareon
+     - Water Stone → Vaporeon
+     - Thunder Stone → Jolteon
+   - Also available:
+     - Leaf Stone
+     - Moon Stone
+     - Link Cable (trade evolutions)
+
+### Shop
+
+| Category | Examples | Purpose |
+|----------|----------|---------|
+| Food | Oran Berry, Meal, Feast | Restore Hunger |
+| Healing | Potion, Super Potion, Hyper Potion | Restore HP |
+| XP | XP Candy | Gain Experience |
+| Evolution Items | Fire, Water, Thunder, Leaf, Moon Stones, Link Cable | Evolve Pokémon |
+
+### Upgrades
+
+- **Park Expansion:** +50 Pokémon capacity for **1000 ₽**
+- **Inventory Expansion:** +50 inventory slots for **500 ₽**
 
 ---
 
 ## Mystery Boxes
 
-Les boxes donnent **uniquement des formes de base** (pas de Charizard / Venusaur directement).  
-Les **doublons sont autorisés** (ex. : plusieurs Mew).
+Mystery Boxes contain **only base-form Pokémon** (no Charizard or Venusaur directly).
 
-| Box | Prix | Contenu (formes de base) |
-|-----|------|---------------------------|
-| **COMMON** | 200 ₽ | 58 Pokémon « classiques » |
+Duplicates are **allowed** (yes, you can own multiple Mew).
+
+| Box | Price | Contents (Base Forms) |
+|------|------|-----------------------|
+| **COMMON** | 200 ₽ | 58 Pokémon |
 | **RARE** | 500 ₽ | 10 Pokémon |
 | **EPIC** | 1200 ₽ | 6 Pokémon |
-| **MYTHICAL** | 3000 ₽ | Mew uniquement |
+| **MYTHICAL** | 3000 ₽ | Mew only |
 | **LEGENDARY** | 5000 ₽ | Articuno, Zapdos, Moltres, Mewtwo |
 
-### COMMON (200 ₽) — 58
+### COMMON (200 ₽) — 58 Pokémon
 
 Abra, Bellsprout, Bulbasaur, Caterpie, Charmander, Clefairy, Cubone, Diglett, Ditto, Doduo, Dratini, Drowzee, Eevee, Ekans, Exeggcute, Farfetch'd, Gastly, Geodude, Goldeen, Grimer, Growlithe, Horsea, Jigglypuff, Jynx, Kabuto, Koffing, Krabby, Lickitung, Machop, Magikarp, Magnemite, Mankey, Meowth, Mr. Mime, Nidoran♀, Nidoran♂, Oddish, Omanyte, Paras, Pidgey, Pikachu, Poliwag, Porygon, Psyduck, Rattata, Sandshrew, Seel, Shellder, Slowpoke, Spearow, Squirtle, Staryu, Tentacool, Venonat, Voltorb, Vulpix, Weedle, Zubat
 
-### RARE (500 ₽) — 10
+### RARE (500 ₽) — 10 Pokémon
 
 Chansey, Electabuzz, Hitmonchan, Hitmonlee, Lapras, Magmar, Onix, Ponyta, Rhyhorn, Tangela
 
-### EPIC (1200 ₽) — 6
+### EPIC (1200 ₽) — 6 Pokémon
 
 Aerodactyl, Kangaskhan, Pinsir, Scyther, Snorlax, Tauros
 
-### MYTHICAL (3000 ₽) — 1
+### MYTHICAL (3000 ₽) — 1 Pokémon
 
 Mew
 
-### LEGENDARY (5000 ₽) — 4
+### LEGENDARY (5000 ₽) — 4 Pokémon
 
 Articuno, Zapdos, Moltres, Mewtwo
 
-### Comment la rareté est calculée
+### How Rarity Is Determined
 
-- **Mew** → toujours Mythical  
-- **Articuno / Zapdos / Moltres / Mewtwo** → toujours Legendary  
-- Sinon, selon le **BST** (somme PV + Attaque + Défense + Vitesse) de la forme de base :
-  - BST &lt; 280 → Common  
-  - BST &lt; 360 → Rare  
-  - sinon → Epic  
+- **Mew** is always **Mythical**
+- **Articuno, Zapdos, Moltres, and Mewtwo** are always **Legendary**
+- All other Pokémon are classified using the **Base Stat Total (BST)** of their base form:
+  - BST < 280 → Common
+  - BST < 360 → Rare
+  - BST ≥ 360 → Epic
 
 ---
 
-## Noms des Pokémon
+## Pokémon Names
 
-En **français**, les noms s’affichent en version française officielle (ex. Salamèche, Carapuce, Évoli).  
-En **anglais (US)**, les noms restent en anglais (Charmander, Squirtle, Eevee).  
-En interne, le jeu utilise toujours les noms anglais (JSON / évolutions).
+In **French**, Pokémon names use their official French localization (e.g. Salamèche, Carapuce, Évoli).
+
+In **English (US)**, Pokémon names remain in English (Charmander, Squirtle, Eevee).
+
+Internally, the game always uses English names for JSON data and evolution logic.
 
 ---
 
 ## Interface
 
-Onglets de l’application :
+The application includes five tabs:
 
-1. **Parc** — liste, détails, nourrir / soigner / entraîner / évoluer  
-2. **Boutique** — acheter des objets  
-3. **Mystery Box** — ouvrir une box selon la rareté  
-4. **Inventaire** — voir ce que tu possèdes  
-5. **Agrandir** — agrandir parc / inventaire  
+1. **Park** — View your Pokémon, inspect details, feed, heal, train, and evolve them.
+2. **Shop** — Purchase items.
+3. **Mystery Box** — Open Mystery Boxes of different rarities.
+4. **Inventory** — View your items.
+5. **Expand** — Upgrade your park and inventory.
 
-Bouton **Passer un jour** en haut à droite.
+The **Pass Day** button is located in the top-right corner.
 
 ---
 
-## Structure du projet
+## Project Structure
 
-```
+```text
 PokePark/
-├── PokeParkApp.java      # App graphique (entrée principale)
-├── PokePark.java         # Version console
-├── build.bat             # Build du JAR
+├── PokeParkApp.java      # Graphical application (main entry point)
+├── PokePark.java         # Console version
+├── build.bat             # JAR build script
 ├── lib/                  # json-simple
-├── i18n/                 # Traductions FR / EN-US
-├── ui/                   # Interface Swing
-├── Pokemon/              # Pokémon, factory, entraînements, évolutions
-├── Player/               # Joueur, parc, inventaire, revenus
-├── Shop/                 # Boutique et objets
-└── MisteryBox/           # Boxes et raretés
+├── i18n/                 # French / English translations
+├── ui/                   # Swing interface
+├── Pokemon/              # Pokémon, factory, training, evolutions
+├── Player/               # Player, park, inventory, income
+├── Shop/                 # Shop and items
+└── MisteryBox/           # Mystery Boxes and rarities
 ```
 
 ---
 
-## Langues (traduction)
+## Localization
 
-Fichiers :
+Translation files:
 
 - `i18n/Messages_fr.properties`
 - `i18n/Messages_en_US.properties`
 
-Pour ajouter une langue : créer `Messages_xx.properties` et l’enregistrer dans le sélecteur de `PokeParkApp`.
+To add another language, create a new `Messages_xx.properties` file and register it in the language selector inside `PokeParkApp`.
 
 ---
 
-## Licence
+## License
 
-Voir le fichier `LICENSE`.
+See the `LICENSE` file.
