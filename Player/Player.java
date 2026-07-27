@@ -1,4 +1,5 @@
 package Player;
+
 import MisteryBox.*;
 import Pokemon.*;
 import Shop.*;
@@ -7,16 +8,15 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class Player {
-    
+
     private String name;
     private int pokeDollars;
     private ArrayList<Pokemon> park;
     private ArrayList<Item> inventory;
     private int parkCapacity;
     private int inventoryCapacity;
+    private int day;
 
-    public static final int MAXGAIN = 2500;
-    public static final int MINGAIN = 200;
     public static final int PARK_INCREMENT_COST = 1000;
     public static final int INVENTORY_INCREMENT_COST = 500;
     public static final int PARK_INCREMENT_SIZE = 50;
@@ -29,21 +29,31 @@ public class Player {
         this.inventory = new ArrayList<>();
         this.parkCapacity = 100;
         this.inventoryCapacity = 100;
+        this.day = 1;
     }
 
     public boolean addPokemon(Pokemon pokemon) {
         if (park.size() < parkCapacity) {
+            pokemon.setPlayer(this);
             return park.add(pokemon);
         }
         return false;
     }
 
     public boolean removePokemon(Pokemon pokemon) {
-        return park.remove(pokemon);
+        boolean removed = park.remove(pokemon);
+        if (removed) {
+            pokemon.setPlayer(null);
+        }
+        return removed;
     }
 
     public int parkSize() {
         return park.size();
+    }
+
+    public ArrayList<Pokemon> getPark() {
+        return this.park;
     }
 
     public boolean addItem(Item item) {
@@ -54,7 +64,12 @@ public class Player {
     }
 
     public boolean sellItem(Item item) {
-        return inventory.remove(item);
+        if (!inventory.remove(item)) {
+            return false;
+        }
+        int refund = Math.max(1, item.getPrice() / 2);
+        setPokeDollars(getPokeDollars() + refund);
+        return true;
     }
 
     public int inventorySize() {
@@ -64,10 +79,8 @@ public class Player {
     public boolean updatePark(int numberOfSpaces) {
         int cost = numberOfSpaces * PARK_INCREMENT_COST;
         if (getPokeDollars() >= cost) {
-            int newMoney = getPokeDollars() - cost;
-            setPokeDollars(newMoney);
-            int newPark = getParkCapacity() + PARK_INCREMENT_SIZE * numberOfSpaces;
-            setParkCapacity(newPark);
+            setPokeDollars(getPokeDollars() - cost);
+            setParkCapacity(getParkCapacity() + PARK_INCREMENT_SIZE * numberOfSpaces);
             return true;
         }
         return false;
@@ -76,19 +89,44 @@ public class Player {
     public boolean updateInventory(int numberOfSpaces) {
         int cost = numberOfSpaces * INVENTORY_INCREMENT_COST;
         if (getPokeDollars() >= cost) {
-            int newMoney = getPokeDollars() - cost;
-            setPokeDollars(newMoney);
-            int newInventory = getInventoryCapacity() + INVENTORY_INCREMENT_SIZE * numberOfSpaces;
-            setInventoryCapacity(newInventory);
+            setPokeDollars(getPokeDollars() - cost);
+            setInventoryCapacity(getInventoryCapacity() + INVENTORY_INCREMENT_SIZE * numberOfSpaces);
             return true;
         }
         return false;
     }
 
-    public void gain() {
-        int pokeDollarsGain = (int) (Math.random() * (MAXGAIN - MINGAIN + 1)) + MINGAIN;
-        int newPokeDollars = getPokeDollars() + pokeDollarsGain;
-        setPokeDollars(newPokeDollars);
+    /** Revenus du parc selon l'état des Pokémon, puis passage au jour suivant. */
+    public String collectParkIncomeAndPassDay() {
+        int income = 0;
+        for (Pokemon pokemon : park) {
+            income += pokemon.computeDailyIncome();
+            pokemon.passDay();
+        }
+
+        setPokeDollars(getPokeDollars() + income);
+        day++;
+
+        return "Jour " + (day - 1) + " terminé. Revenus du parc : +" + income + " ₽. Jour actuel : " + day + ".";
+    }
+
+    public String buyMysteryBox(Rarity rarity) {
+        MisteryBox box = new MisteryBox(rarity);
+
+        if (getPokeDollars() < box.getPrice()) {
+            return "Pas assez de Pokédollars. Il faut " + box.getPrice() + " ₽.";
+        }
+
+        if (parkSize() >= parkCapacity) {
+            return "Parc plein ! Agrandis-le avant d'ouvrir une box.";
+        }
+
+        setPokeDollars(getPokeDollars() - box.getPrice());
+        Pokemon pokemon = box.open();
+        addPokemon(pokemon);
+
+        return "Mystery Box " + box.getRarity() + " ouverte (-" + box.getPrice() + " ₽) ! "
+            + pokemon.getName() + " rejoint le parc.";
     }
 
     public String getName() {
@@ -111,18 +149,35 @@ public class Player {
         return this.inventoryCapacity;
     }
 
+    public int getDay() {
+        return this.day;
+    }
+
     public ArrayList<Food> getFoodsFromInventory() {
         return inventory.stream()
             .filter(item -> item instanceof Food)
             .map(item -> (Food) item)
             .collect(Collectors.toCollection(ArrayList::new));
     }
-    
-    
+
     public ArrayList<Heal> getHealsFromInventory() {
         return inventory.stream()
             .filter(item -> item instanceof Heal)
             .map(item -> (Heal) item)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public ArrayList<XpBoost> getXpBoostsFromInventory() {
+        return inventory.stream()
+            .filter(item -> item instanceof XpBoost)
+            .map(item -> (XpBoost) item)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public ArrayList<Stone> getStonesFromInventory() {
+        return inventory.stream()
+            .filter(item -> item instanceof Stone)
+            .map(item -> (Stone) item)
             .collect(Collectors.toCollection(ArrayList::new));
     }
 

@@ -5,7 +5,7 @@ import Player.*;
 import Shop.*;
 
 public class Pokemon {
-    
+
     private int id;
     private String name;
     private Type primaryType;
@@ -45,14 +45,32 @@ public class Pokemon {
         this.evolution = _evolution;
         this.evolutionLevel = _evolutionLevel;
         this.xp = 0;
-        this.foodStatus = Status.NORMAL;
-        this.staminaStatus = Status.INSHAPE;
         this.foodBar = MAXFOOD;
         this.staminaBar = MAXSTAMINA;
         this.lvl = MINLEVEL;
+        this.foodStatus = Status.FULL;
+        this.staminaStatus = Status.INSHAPE;
+    }
+
+    public Pokemon copy() {
+        return new Pokemon(
+            this.id,
+            this.name,
+            this.primaryType,
+            this.secondaryType,
+            this.maxPv,
+            this.attack,
+            this.defense,
+            this.speed,
+            this.evolution,
+            this.evolutionLevel
+        );
     }
 
     public String feed(Food food) {
+        if (player == null) {
+            return "Ce Pokémon n'appartient à aucun joueur.";
+        }
         if (getFoodBar() == MAXFOOD) {
             return getName() + " n'a pas faim pour l'instant.";
         }
@@ -60,17 +78,11 @@ public class Pokemon {
         ArrayList<Food> availableFoods = player.getFoodsFromInventory();
 
         for (Food f : availableFoods) {
-            if (f.equals(food)) {
+            if (f == food || f.getName().equals(food.getName())) {
                 player.getInventory().remove(f);
                 int newFoodBar = getFoodBar() + f.getFoodPoint();
-                setFoodBar(newFoodBar);
-
-                if (getFoodBar() > MAXFOOD) {
-                    setFoodBar(MAXFOOD);
-                }
-
+                setFoodBar(Math.min(newFoodBar, MAXFOOD));
                 updateFoodStatus();
-
                 return getName() + " a mangé " + f.getName() + ", faim : " + getFoodBar() + " / " + MAXFOOD;
             }
         }
@@ -79,6 +91,9 @@ public class Pokemon {
     }
 
     public String heal(Heal heal) {
+        if (player == null) {
+            return "Ce Pokémon n'appartient à aucun joueur.";
+        }
         if (getPv() == getMaxPv()) {
             return getName() + " n'a pas besoin d'être soigné.";
         }
@@ -86,15 +101,10 @@ public class Pokemon {
         ArrayList<Heal> availableHeals = player.getHealsFromInventory();
 
         for (Heal h : availableHeals) {
-            if (h.equals(heal)) {
+            if (h == heal || h.getName().equals(heal.getName())) {
                 player.getInventory().remove(h);
                 int newPv = getPv() + h.getHealPoint();
-                setPv(newPv);
-
-                if (getPv() > getMaxPv()) {
-                    setPv(getMaxPv());
-                }
-
+                setPv(Math.min(newPv, getMaxPv()));
                 return getName() + " a été soigné avec " + h.getName() + ", pv : " + getPv() + " / " + getMaxPv();
             }
         }
@@ -102,67 +112,160 @@ public class Pokemon {
         return "Le heal " + heal.getName() + " n'est pas dans l'inventaire.";
     }
 
+    public String useXpBoost(XpBoost boost) {
+        if (player == null) {
+            return "Ce Pokémon n'appartient à aucun joueur.";
+        }
+
+        ArrayList<XpBoost> boosts = player.getXpBoostsFromInventory();
+        for (XpBoost b : boosts) {
+            if (b == boost || b.getName().equals(boost.getName())) {
+                player.getInventory().remove(b);
+                gainXp(b.getXpPoint());
+                return getName() + " a utilisé " + b.getName() + " !";
+            }
+        }
+
+        return "Le boost " + boost.getName() + " n'est pas dans l'inventaire.";
+    }
+
     public String train(Training train) {
+        if (getPv() <= 0) {
+            return getName() + " est K.O. ! Soigne-le avant de l'entraîner.";
+        }
+        if (getFoodStatus() == Status.STARVING) {
+            return getName() + " est trop affamé pour s'entraîner. Nourris-le d'abord.";
+        }
+        if (getStaminaStatus() != Status.INSHAPE) {
+            return getName() + " est trop fatigué pour s'entraîner. Fais-le reposer (passer un jour).";
+        }
+
         int xpGained = 0;
         String msg = "";
+        int trainingStrain = 0;
 
-        if (getStaminaStatus() == Status.INSHAPE) {
-            switch (train) {
-                case STRENGTH:
-                    if (getStaminaBar() > 50) {
-                        xpGained = getRandomNumber(500, 800);
-                        int attackGained = getRandomNumber(1, 5);
-                        int newAttack = getAttack() + attackGained;
-                        setAttack(newAttack);
-                        msg = getName() + " a gagné " + attackGained + " point de force avec l'entraînement: " + train;
-                        decreaseStaminaAndFoodBars(50, 20);
-                    } else {
-                        msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
-                    }
-                    break;
-                case DEFENSE:
-                    if (getStaminaBar() > 40) {
-                        xpGained = getRandomNumber(300, 600);
-                        int defenseGained = getRandomNumber(1, 5);
-                        int newDefense = getDefense() + defenseGained;
-                        setDefense(newDefense);
-                        msg = getName() + " a gagné " + defenseGained + " point de défense avec l'entraînement: " + train;
-                        decreaseStaminaAndFoodBars(40, 20);
-                    } else {
-                        msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
-                    }
-                    break;
-                case SPEED:
-                    if (getStaminaBar() > 30) {
-                        xpGained = getRandomNumber(200, 500);
-                        int speedGained = getRandomNumber(1, 5);
-                        int newSpeed = getSpeed() + speedGained;
-                        setSpeed(newSpeed);
-                        msg = getName() + " a gagné " + speedGained + " point de vitesse avec l'entraînement: " + train;
-                        decreaseStaminaAndFoodBars(30, 20);
-                    } else {
-                        msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
-                    }
-                    break;
-                default:
-                    msg = "Cet entraînement n'existe pas !";
-                    break;
+        switch (train) {
+            case STRENGTH:
+                if (getStaminaBar() > 50) {
+                    xpGained = getRandomNumber(500, 800);
+                    int attackGained = getRandomNumber(1, 5);
+                    setAttack(getAttack() + attackGained);
+                    trainingStrain = getRandomNumber(8, 14);
+                    msg = getName() + " a gagné " + attackGained + " point(s) de force (" + train + ").";
+                    decreaseStaminaAndFoodBars(50, 20);
+                } else {
+                    msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
+                }
+                break;
+            case DEFENSE:
+                if (getStaminaBar() > 40) {
+                    xpGained = getRandomNumber(300, 600);
+                    int defenseGained = getRandomNumber(1, 5);
+                    setDefense(getDefense() + defenseGained);
+                    trainingStrain = getRandomNumber(6, 11);
+                    msg = getName() + " a gagné " + defenseGained + " point(s) de défense (" + train + ").";
+                    decreaseStaminaAndFoodBars(40, 20);
+                } else {
+                    msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
+                }
+                break;
+            case SPEED:
+                if (getStaminaBar() > 30) {
+                    xpGained = getRandomNumber(200, 500);
+                    int speedGained = getRandomNumber(1, 5);
+                    setSpeed(getSpeed() + speedGained);
+                    trainingStrain = getRandomNumber(4, 9);
+                    msg = getName() + " a gagné " + speedGained + " point(s) de vitesse (" + train + ").";
+                    decreaseStaminaAndFoodBars(30, 20);
+                } else {
+                    msg = getName() + " est trop fatigué pour pratiquer l'entraînement: " + train;
+                }
+                break;
+            default:
+                msg = "Cet entraînement n'existe pas !";
+                break;
+        }
+
+        updateStaminaStatus();
+        updateFoodStatus();
+
+        if (trainingStrain > 0) {
+            // L'entraînement fatigue le corps ; la faim aggrave les blessures.
+            if (getFoodStatus() == Status.HUNGER) {
+                trainingStrain = (int) Math.round(trainingStrain * 1.5);
             }
+            int lost = applyDamage(trainingStrain);
+            msg += " Effort : -" + lost + " PV (" + getPv() + "/" + getMaxPv() + ").";
+            if (getPv() <= 0) {
+                msg += " " + getName() + " est K.O. !";
+            }
+        }
 
-            updateStaminaStatus();
-            updateFoodStatus();
+        if (xpGained > 0 && getPv() > 0) {
             gainXp(xpGained);
         }
 
         return msg;
     }
 
-    private void decreaseStaminaBar(int value) {
-        int newStaminaBar = getStaminaBar() - value;
-        setStaminaBar(newStaminaBar);
-        if (getStaminaBar() < MINSTAMINA) {
-            setStaminaBar(MINSTAMINA);
+    /** Appliqué chaque jour : faim ↓, stamina ↑ ; la malnutrition fait perdre des PV. */
+    public void passDay() {
+        decreaseFoodBar(15);
+        int rested = Math.min(MAXSTAMINA, getStaminaBar() + 40);
+        setStaminaBar(rested);
+        updateFoodStatus();
+        updateStaminaStatus();
+
+        if (getPv() > 0) {
+            if (getFoodStatus() == Status.STARVING) {
+                applyDamage(Math.max(5, getMaxPv() / 6));
+            } else if (getFoodStatus() == Status.HUNGER) {
+                applyDamage(Math.max(2, getMaxPv() / 12));
+            }
         }
+    }
+
+    /** Retourne les PV réellement perdus. */
+    private int applyDamage(int amount) {
+        if (amount <= 0 || getPv() <= 0) {
+            return 0;
+        }
+        int before = getPv();
+        setPv(Math.max(0, getPv() - amount));
+        return before - getPv();
+    }
+
+    public int computeDailyIncome() {
+        if (getPv() <= 0) {
+            return 0;
+        }
+
+        double foodFactor;
+        switch (getFoodStatus()) {
+            case FULL:
+                foodFactor = 1.2;
+                break;
+            case NORMAL:
+                foodFactor = 1.0;
+                break;
+            case HUNGER:
+                foodFactor = 0.6;
+                break;
+            case STARVING:
+                foodFactor = 0.3;
+                break;
+            default:
+                foodFactor = 0.5;
+                break;
+        }
+
+        double staminaFactor = getStaminaStatus() == Status.INSHAPE ? 1.0 : 0.7;
+        double healthFactor = (double) getPv() / getMaxPv();
+        return (int) Math.round((50 + getLevel() * 5) * foodFactor * staminaFactor * healthFactor);
+    }
+
+    private void decreaseStaminaBar(int value) {
+        setStaminaBar(Math.max(MINSTAMINA, getStaminaBar() - value));
     }
 
     private void decreaseStaminaAndFoodBars(int staminaValue, int foodValue) {
@@ -171,16 +274,11 @@ public class Pokemon {
     }
 
     private void decreaseFoodBar(int value) {
-        int newFoodBar = getFoodBar() - value;
-        setFoodBar(newFoodBar);
-        if (getFoodBar() < MINFOOD) {
-            setFoodBar(MINFOOD);
-        }
+        setFoodBar(Math.max(MINFOOD, getFoodBar() - value));
     }
 
     private void updateStaminaStatus() {
-        int currentStamina = getStaminaBar();
-        if (currentStamina <= 49) {
+        if (getStaminaBar() <= 49) {
             setStaminaStatus(Status.TIRED);
         } else {
             setStaminaStatus(Status.INSHAPE);
@@ -201,25 +299,33 @@ public class Pokemon {
     }
 
     public void gainXp(int xpGained) {
-        int newXp = getXp() + xpGained;
-        setXp(newXp);
-        int xpNexLvl = getXpForNextLevel(getLevel());
-        System.out.println("XP gagné: +" + xpGained + " !");
-        System.out.println("XP actuel: " + getXp() + " / " + xpNexLvl + " pour atteindre le niveau suivant.");
+        if (xpGained <= 0) {
+            return;
+        }
 
-        while (getXp() >= xpNexLvl) {
-            int xp = getXp() - xpNexLvl;
-            setXp(xp);
+        setXp(getXp() + xpGained);
+        System.out.println("XP gagné: +" + xpGained + " !");
+
+        int xpNextLvl = getXpForNextLevel(getLevel());
+        System.out.println("XP actuel: " + getXp() + " / " + xpNextLvl + " pour le niveau suivant.");
+
+        while (getLevel() < MAXLEVEL && getXp() >= xpNextLvl && xpNextLvl > 0) {
+            setXp(getXp() - xpNextLvl);
             levelUp();
+            xpNextLvl = getXpForNextLevel(getLevel());
         }
     }
 
     private void levelUp() {
         if (getLevel() < MAXLEVEL) {
-            int increlvl = getLevel() + 1;
-            setLevel(increlvl);
+            setLevel(getLevel() + 1);
             System.out.println(getName() + " est monté au niveau " + getLevel() + " !");
-            evolve();
+            if (EvolutionRules.canEvolveByLevel(this)) {
+                String previousName = getName();
+                if (applyEvolution(getEvolution())) {
+                    System.out.println(previousName + " a évolué en " + getName() + " !");
+                }
+            }
         } else {
             System.out.println(getName() + " est déjà au niveau maximum !");
         }
@@ -229,35 +335,111 @@ public class Pokemon {
         if (level < MINLEVEL || level >= MAXLEVEL) {
             return 0;
         }
-
-        return (int) (400 * Math.pow(level, 3) / 8000);
+        return 100 + level * level * 50;
     }
 
+    /** Évolution automatique au niveau requis. */
     public void evolve() {
-        if (getLevel() < getEvolutionLevel()) {
-            return;
+        if (EvolutionRules.canEvolveByLevel(this)) {
+            String previousName = getName();
+            if (applyEvolution(getEvolution())) {
+                System.out.println(previousName + " a évolué en " + getName() + " !");
+            }
+        }
+    }
+
+    public String evolveWithStone(Stone stone) {
+        if (player == null) {
+            return "Ce Pokémon n'appartient à aucun joueur.";
+        }
+        if (stone == null) {
+            return "Aucune pierre sélectionnée.";
         }
 
-        Pokemon evolutionPokemon = PokemonFactory.obtenirPokemon(getEvolution());
-        
-        if (evolutionPokemon != null) {
-            setId(evolutionPokemon.id);
-            setName(evolutionPokemon.name);
-            setPrimaryType(evolutionPokemon.primaryType);
-            setSecondaryType(evolutionPokemon.secondaryType);
-            setMaxPv(evolutionPokemon.pv);
-            setAttack(evolutionPokemon.attack);
-            setDefense(evolutionPokemon.defense);
-            setSpeed(evolutionPokemon.speed);
-            setEvolution(evolutionPokemon.evolution);
-            setEvolutionLevel(evolutionPokemon.evolutionLevel);
-            setPv(getMaxPv());
-            setXp(0);
-
-            System.out.println(getName() + " a évolué en " + evolutionPokemon.getName() + " !");
-        } else {
-            System.out.println(getName() + " ne peut pas évoluer !");
+        String target = EvolutionRules.resolveEvolutionTarget(this, stone.getStoneType());
+        if (target == null) {
+            if (getEvolution() == null) {
+                return getName() + " ne peut plus évoluer.";
+            }
+            if (getEvolutionLevel() > 0) {
+                return getName() + " évolue par niveau (niv. " + getEvolutionLevel() + "), pas avec cette pierre.";
+            }
+            return stone.getName() + " n'a aucun effet sur " + getName() + ".";
         }
+
+        ArrayList<Stone> stones = player.getStonesFromInventory();
+        boolean owned = false;
+        for (Stone s : stones) {
+            if (s == stone || (s.getName().equals(stone.getName()) && s.getStoneType() == stone.getStoneType())) {
+                player.getInventory().remove(s);
+                owned = true;
+                break;
+            }
+        }
+        if (!owned) {
+            return "La pierre " + stone.getName() + " n'est pas dans l'inventaire.";
+        }
+
+        String previousName = getName();
+        if (!applyEvolution(target)) {
+            player.addItem(new Stone(stone.getName(), stone.getPrice(), stone.getDescription(), stone.getStoneType()));
+            return previousName + " n'a pas pu évoluer (données manquantes pour " + target + ").";
+        }
+
+        return previousName + " a évolué en " + getName() + " grâce à " + stone.getName() + " !";
+    }
+
+    private boolean applyEvolution(String evolutionName) {
+        Pokemon evolutionPokemon = PokemonFactory.obtenirPokemon(evolutionName);
+        if (evolutionPokemon == null) {
+            return false;
+        }
+
+        setId(evolutionPokemon.id);
+        setName(evolutionPokemon.name);
+        setPrimaryType(evolutionPokemon.primaryType);
+        setSecondaryType(evolutionPokemon.secondaryType);
+        setMaxPv(evolutionPokemon.maxPv);
+        setAttack(evolutionPokemon.attack);
+        setDefense(evolutionPokemon.defense);
+        setSpeed(evolutionPokemon.speed);
+        setEvolution(evolutionPokemon.evolution);
+        setEvolutionLevel(evolutionPokemon.evolutionLevel);
+        setPv(getMaxPv());
+        return true;
+    }
+
+    public String evolutionHint() {
+        if (getEvolution() == null) {
+            return "forme finale";
+        }
+        if (getEvolution().equalsIgnoreCase("Multiple")) {
+            return "évolue avec Pierre Feu / Eau / Foudre";
+        }
+        if (getEvolutionLevel() > 0) {
+            return "évolue en " + getEvolution() + " au niv. " + getEvolutionLevel();
+        }
+        return "évolue en " + getEvolution() + " avec une pierre";
+    }
+
+    public int getBaseStatTotal() {
+        return maxPv + attack + defense + speed;
+    }
+
+    public String shortStatus() {
+        String types = primaryType.name();
+        if (secondaryType != null) {
+            types += "/" + secondaryType.name();
+        }
+        return name + " | Lv." + lvl + " | " + types
+            + " | PV " + pv + "/" + maxPv
+            + " | Faim " + foodBar + " (" + foodStatus + ")"
+            + " | Stamina " + staminaBar + " (" + staminaStatus + ")"
+            + " | " + evolutionHint();
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     public String getName() {
@@ -322,6 +504,14 @@ public class Pokemon {
 
     public int getEvolutionLevel() {
         return this.evolutionLevel;
+    }
+
+    public Player getPlayer() {
+        return this.player;
+    }
+
+    public void setPlayer(Player _player) {
+        this.player = _player;
     }
 
     public void setId(int _id) {

@@ -2,8 +2,10 @@ package Pokemon;
 
 public enum Type {
     BUG,
+    DARK,
     DRAGON,
     ELECTRIC,
+    FAIRY,
     FIGHTING,
     FIRE,
     FLYING,
@@ -15,5 +17,6 @@ public enum Type {
     POISON,
     PSYCHIC,
     ROCK,
+    STEEL,
     WATER
 }
