@@ -191,4 +191,8 @@ public class Player {
     public void setInventoryCapacity(int _inventoryCapacity) {
         this.inventoryCapacity = _inventoryCapacity;
     }
+
+    public void setDay(int _day) {
+        this.day = Math.max(1, _day);
+    }
 }

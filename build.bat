@@ -17,7 +17,7 @@ mkdir dist 2>nul
 echo Compilation...
 "%JDK%\javac.exe" -encoding UTF-8 -cp "lib\json-simple-1.1.1.jar" -d "%OUT%" ^
   PokeParkApp.java PokePark.java ^
-  Pokemon\*.java Player\*.java Shop\*.java MisteryBox\*.java ui\*.java i18n\*.java
+  Pokemon\*.java Player\*.java Shop\*.java MisteryBox\*.java ui\*.java i18n\*.java save\*.java
 if errorlevel 1 exit /b 1
 
 echo Copie des ressources...

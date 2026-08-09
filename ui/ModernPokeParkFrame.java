@@ -14,6 +14,9 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,6 +54,7 @@ import Shop.Shop;
 import Shop.Stone;
 import Shop.XpBoost;
 import i18n.I18n;
+import save.SaveManager;
 import ui.UiComponents.Badge;
 import ui.UiComponents.ModernButton;
 import ui.UiComponents.ProgressBar;
@@ -108,6 +112,12 @@ public class ModernPokeParkFrame extends JFrame {
         setMinimumSize(new Dimension(1120, 720));
         setSize(1220, 790);
         setLocationRelativeTo(null);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                saveGame();
+            }
+        });
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(UiTheme.BG);
@@ -688,6 +698,7 @@ public class ModernPokeParkFrame extends JFrame {
         if (inventoryModel.isEmpty()) inventoryModel.addElement(I18n.t("inv.empty"));
         refreshPokemonDetails();
         refreshShopSelection();
+        saveGame();
     }
 
     private void refreshPokemonDetails() {
@@ -841,6 +852,14 @@ public class ModernPokeParkFrame extends JFrame {
         if (message == null || message.trim().isEmpty()) return;
         activityLog.setText(message);
         activityLog.setCaretPosition(0);
+    }
+
+    private void saveGame() {
+        try {
+            SaveManager.save(player);
+        } catch (IOException error) {
+            log(I18n.t("save.write_error", error.getMessage()));
+        }
     }
 
     private Color rarityColor(Rarity rarity) {

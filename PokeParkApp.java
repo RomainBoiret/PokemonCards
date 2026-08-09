@@ -7,6 +7,7 @@ import javax.swing.UIManager;
 import Player.Player;
 import Pokemon.PokemonFactory;
 import i18n.I18n;
+import save.SaveManager;
 import ui.ModernPokeParkFrame;
 
 /**
@@ -32,23 +33,61 @@ public class PokeParkApp {
         }
 
         SwingUtilities.invokeLater(() -> {
-            String name = JOptionPane.showInputDialog(
-                null,
-                I18n.t("app.ask_name"),
-                I18n.t("app.title"),
-                JOptionPane.QUESTION_MESSAGE
-            );
-            if (name == null) {
+            Player player = choosePlayer();
+            if (player == null) {
                 return;
             }
-            name = name.trim();
-            if (name.isEmpty()) {
-                name = "Manager";
-            }
 
-            ModernPokeParkFrame frame = new ModernPokeParkFrame(new Player(name));
+            ModernPokeParkFrame frame = new ModernPokeParkFrame(player);
             frame.setVisible(true);
         });
+    }
+
+    private static Player choosePlayer() {
+        if (SaveManager.exists()) {
+            try {
+                Player savedPlayer = SaveManager.load();
+                String[] options = {
+                    I18n.t("save.resume"),
+                    I18n.t("save.new_game")
+                };
+                int choice = JOptionPane.showOptionDialog(
+                    null,
+                    I18n.t("save.found", savedPlayer.getName(), savedPlayer.getDay()),
+                    I18n.t("app.title"),
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+                );
+                if (choice == JOptionPane.CLOSED_OPTION) {
+                    return null;
+                }
+                if (choice == 0) {
+                    return savedPlayer;
+                }
+            } catch (Exception error) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    I18n.t("save.load_error"),
+                    I18n.t("app.title"),
+                    JOptionPane.WARNING_MESSAGE
+                );
+            }
+        }
+
+        String name = JOptionPane.showInputDialog(
+            null,
+            I18n.t("app.ask_name"),
+            I18n.t("app.title"),
+            JOptionPane.QUESTION_MESSAGE
+        );
+        if (name == null) {
+            return null;
+        }
+        name = name.trim();
+        return new Player(name.isEmpty() ? "Manager" : name);
     }
 
     private static void configureLookAndFeel() {

@@ -55,6 +55,24 @@ You begin with **1000 ₽**, a park capacity of **100 Pokémon**, and an invento
 
 ---
 
+## Saving Your Game
+
+Your game is **saved automatically** after every action and when the application closes.
+
+- Select **Continue** at startup to resume your saved game.
+- Select **New Game** to start over and replace the current save.
+- The save includes the current day, Pokédollars, capacities, every Pokémon (level, XP, stats, condition and evolution), and the full inventory.
+
+Save location on Windows:
+
+```text
+C:\Users\<user>\.pokepark\save.json
+```
+
+On macOS / Linux: `~/.pokepark/save.json`.
+
+---
+
 ## Goal
 
 Grow your park by collecting Pokémon, evolving them, keeping them healthy, and increasing your daily income.
