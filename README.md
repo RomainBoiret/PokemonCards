@@ -10,14 +10,53 @@ Available in **French** and **English (US)**.
 
 ## Requirements
 
-- **JDK 17+** ([Microsoft OpenJDK](https://learn.microsoft.com/java/openjdk/download) or equivalent)
-- Windows / macOS / Linux
+- **Windows portable build:** no Java installation required.
+- **JAR / source build:** JDK 17+ required.
+- Windows / macOS / Linux (JAR), Windows x64 (portable build)
 
 ---
 
 ## Running the Game
 
-### Option A - JAR (Recommended)
+### Option A - Windows Portable (Recommended)
+
+Download `PokePark-Windows-x64-v1.1.0.zip` from the latest GitHub release:
+
+1. Extract the ZIP.
+2. Open the `PokePark` folder.
+3. Double-click `PokePark.exe`.
+
+The Java runtime is bundled with the application. **Players do not need to install Java.**
+
+To generate this package locally:
+
+```bat
+.\package-windows.bat
+```
+
+The result is written to `release\PokePark-Windows-x64-v1.1.0.zip`.
+
+### Option B - Linux Portable
+
+Download `PokePark-Linux-x64-v1.1.0.tar.gz` from the latest GitHub release:
+
+```bash
+tar -xzf PokePark-Linux-x64-v1.1.0.tar.gz
+./PokePark/bin/PokePark
+```
+
+The Java runtime is bundled with the application. **Players do not need to install Java.**
+
+The Linux archive is built by the `Build Linux portable app` GitHub Action. To build it on a Linux development machine:
+
+```bash
+chmod +x build.sh package-linux.sh
+./package-linux.sh 1.1.0
+```
+
+The result is written to `release/PokePark-Linux-x64-v1.1.0.tar.gz`.
+
+### Option C - JAR / Development
 
 ```bat
 .\build.bat
@@ -40,7 +79,7 @@ java -jar dist/PokePark.jar
 
 > **Note:** This project requires **Java 17+**. If you see an `UnsupportedClassVersionError`, your `java -version` is too old. Use `.\run.bat` or install a JDK 17+.
 
-### Option B - Console
+### Option D - Console
 
 ```bat
 .\build.bat

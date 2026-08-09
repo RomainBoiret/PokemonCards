@@ -19,6 +19,7 @@ mono_crash.*
 # Java build output
 out/
 dist/
+package-input/
 
 # Build results
 [Dd]ebug/

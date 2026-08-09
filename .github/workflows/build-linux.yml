@@ -1,0 +1,62 @@
+name: Build Linux portable app
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Application version (for example: 1.1.0)"
+        required: true
+        default: "1.1.0"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package-linux:
+    name: Linux x64 portable
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: "17"
+
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build self-contained Linux app
+        shell: bash
+        run: |
+          chmod +x build.sh package-linux.sh
+          ./package-linux.sh "${{ steps.version.outputs.value }}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PokePark-Linux-x64-v${{ steps.version.outputs.value }}
+          path: release/PokePark-Linux-x64-v${{ steps.version.outputs.value }}.tar.gz
+          if-no-files-found: error
+
+      - name: Attach package to tagged release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" \
+            "release/PokePark-Linux-x64-v${{ steps.version.outputs.value }}.tar.gz" \
+            --clobber
