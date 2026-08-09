@@ -7,7 +7,7 @@ import javax.swing.UIManager;
 import Player.Player;
 import Pokemon.PokemonFactory;
 import i18n.I18n;
-import ui.PokeParkFrame;
+import ui.ModernPokeParkFrame;
 
 /**
  * Graphical entry point for PokePark.
@@ -17,6 +17,7 @@ public class PokeParkApp {
     private static final String POKEMON_JSON = "Pokemon/PokemonList.json";
 
     public static void main(String[] args) {
+        configureLookAndFeel();
         chooseLanguage();
 
         PokemonFactory.chargerPokemons(POKEMON_JSON);
@@ -28,12 +29,6 @@ public class PokeParkApp {
                 JOptionPane.ERROR_MESSAGE
             );
             return;
-        }
-
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {
-            // optional
         }
 
         SwingUtilities.invokeLater(() -> {
@@ -51,9 +46,21 @@ public class PokeParkApp {
                 name = "Manager";
             }
 
-            PokeParkFrame frame = new PokeParkFrame(new Player(name));
+            ModernPokeParkFrame frame = new ModernPokeParkFrame(new Player(name));
             frame.setVisible(true);
         });
+    }
+
+    private static void configureLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.put("Button.arc", 14);
+            UIManager.put("Component.arc", 14);
+            UIManager.put("TextComponent.arc", 12);
+            UIManager.put("ScrollBar.width", 11);
+        } catch (Exception ignored) {
+            // The application keeps working with Swing's default look and feel.
+        }
     }
 
     private static void chooseLanguage() {
